@@ -2,64 +2,61 @@ import { createComparison, defaultRules } from "../lib/compare.js";
 
 // @todo: #4.3 — настроить компаратор
 
-const compare = createComparison(defaultRules);
+//const compare = createComparison(defaultRules);
 
-export function initFiltering(elements, indexes) {
-  // @todo: #4.1 — заполнить выпадающие списки опциями
-  Object.keys(indexes) // Получаем ключи из объекта
-    .forEach((elementName) => {
-      // Перебираем по именам
-
-      if (!elements[elementName]) return;
+export function initFiltering(elements) {
+  const updateIndexes = (elements, indexes) => {
+    Object.keys(indexes).forEach((elementName) => {
       elements[elementName].append(
-        // в каждый элемент добавляем опции
-        ...Object.values(indexes[elementName]) // формируем массив имён, значений опций
-          .map((name) => {
-            // используйте name как значение и текстовое содержимое
-            // @todo: создать и вернуть тег опции
-            const option = document.createElement("option");
-            option.value = name; // используем name как значение
-            option.textContent = name; // и как текстовое содержимое
-            return option;
-          }),
+        ...Object.values(indexes[elementName]).map((name) => {
+          const el = document.createElement("option");
+          el.textContent = name;
+          el.value = name;
+          return el;
+        }),
       );
     });
+  };
 
-  return (data, state, action) => {
-    // @todo: #4.2 — обработать очистку поля
-    if (
-      action &&
-      (action.type === "reset" || action.dataset?.action === "clear")
-    ) {
-      // Если экшен сбросил всю форму, очищаем объект состояния state вручную
-      Object.keys(state).forEach((key) => {
-        if (key !== "rowsPerPage" && key !== "page") {
-          state[key] = "";
+  const applyFiltering = (query, state, action) => {
+    // код с обработкой очистки поля
+    if (action && (action.name === "clear" || action.type === "reset")) {
+      Object.keys(elements).forEach((key) => {
+        if (
+          elements[key] &&
+          ["INPUT", "SELECT"].includes(elements[key].tagName)
+        ) {
+          elements[key].value = "";
         }
       });
-      state.page = 1;
+      Object.keys(query).forEach((key) => {
+        if (key.startsWith("filter[")) {
+          delete query[key];
+        }
+      });
     }
 
-    const { page, rowsPerPage, ...filterState } = state;
+    // @todo: #4.5 — отфильтровать данные, используя компаратор
+    const filter = {};
+    Object.keys(elements).forEach((key) => {
+      if (elements[key]) {
+        if (
+          ["INPUT", "SELECT"].includes(elements[key].tagName) &&
+          elements[key].value
+        ) {
+          // ищем поля ввода в фильтре с непустыми данными
+          filter[`filter[${elements[key].name}]`] = elements[key].value; // чтобы сформировать в query вложенный объект фильтра
+        }
+      }
+    });
 
-    const fromValue = filterState.totalFrom;
-    const toValue = filterState.totalTo;
+    return Object.keys(filter).length
+      ? Object.assign({}, query, filter)
+      : query; // если в фильтре что-то добавилось, применим к запросу
+  };
 
-    delete filterState.totalFrom;
-    delete filterState.totalTo;
-
-    if (
-      (fromValue && fromValue.trim() !== "") ||
-      (toValue && toValue.trim() !== "")
-    ) {
-      filterState.total = [
-        fromValue && fromValue.trim() !== ""
-          ? parseFloat(fromValue)
-          : undefined,
-        toValue && toValue.trim() !== "" ? parseFloat(toValue) : undefined,
-      ];
-    }
-
-    return data.filter((row) => compare(row, filterState));
+  return {
+    updateIndexes,
+    applyFiltering,
   };
 }

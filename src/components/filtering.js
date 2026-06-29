@@ -20,7 +20,7 @@ export function initFiltering(elements) {
 
   const applyFiltering = (query, state, action) => {
     // код с обработкой очистки поля
-    if (action && (action.name === "clear" || action.type === "reset")) {
+    if (action && action.name === "clear") {
       const parent = action.parentElement;
       if (parent) {
         const input = parent.querySelector("input");
@@ -30,7 +30,6 @@ export function initFiltering(elements) {
           if (state && state[fieldName] !== undefined) {
             state[fieldName] = "";
           }
-          delete query[`filter[${fieldName}]`];
         }
       }
     }

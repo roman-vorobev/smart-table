@@ -92,11 +92,7 @@ const { applyFiltering, updateIndexes } = initFiltering(
 const applySearching = initSearching("search");
 
 // @todo: инициализация
-sampleTable.container.addEventListener("input", () => render());
-sampleTable.container.addEventListener("change", () => render());
-sampleTable.container.addEventListener("reset", () => {
-  setTimeout(() => render(), 0);
-});
+
 async function init() {
   const indexes = await api.getIndexes();
   updateIndexes(sampleTable.filter.elements, {

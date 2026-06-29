@@ -21,19 +21,18 @@ export function initFiltering(elements) {
   const applyFiltering = (query, state, action) => {
     // код с обработкой очистки поля
     if (action && (action.name === "clear" || action.type === "reset")) {
-      Object.keys(elements).forEach((key) => {
-        if (
-          elements[key] &&
-          ["INPUT", "SELECT"].includes(elements[key].tagName)
-        ) {
-          elements[key].value = "";
+      const parent = action.parentElement;
+      if (parent) {
+        const input = parent.querySelector("input");
+        if (input) {
+          const fieldName = input.name;
+          input.value = "";
+          if (state && state[fieldName] !== undefined) {
+            state[fieldName] = "";
+          }
+          delete query[`filter[${fieldName}]`];
         }
-      });
-      Object.keys(query).forEach((key) => {
-        if (key.startsWith("filter[")) {
-          delete query[key];
-        }
-      });
+      }
     }
 
     // @todo: #4.5 — отфильтровать данные, используя компаратор

@@ -30,9 +30,6 @@ export function initTable(settings, onAction) {
   // @todo: #1.3 —  обработать события и вызвать onAction()
 
   root.container.addEventListener("change", (e) => {
-    if (e.target.name === "page") {
-      return;
-    }
     onAction();
   });
 
